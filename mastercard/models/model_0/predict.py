@@ -7,7 +7,7 @@ def predict_pipe(
     config: Config,
     artifacts: Artifacts,
     predict_dataset: pd.DataFrame,
-):
+) -> pd.DataFrame:
     return pd.DataFrame(
         artifacts.model.predict(predict_dataset[config.columns]),
         columns=[f"{config.target}_pred"],

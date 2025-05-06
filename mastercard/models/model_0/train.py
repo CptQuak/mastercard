@@ -4,15 +4,21 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from mastercard.experiment_template import Config
 from mastercard.models.model_0.artifacts import Artifacts
+from mastercard.models.model_0.hyperparameters import Hyperparameters
 
 
-def train_pipe(config: Config, dataset: pd.DataFrame):
+def train_pipe(
+    config: Config,
+    hyper_params: Hyperparameters,
+    dataset: pd.DataFrame,
+) -> Artifacts:
     model = make_pipeline(
-        StandardScaler(), LogisticRegression()
+        StandardScaler(),
+        LogisticRegression(
+            penalty=hyper_params.penalty,
+            C=hyper_params.C,
+        ),
     )
     model.fit(dataset[config.columns], dataset[config.target])
-    
-    artifacts = {
-        'model': model,
-    }
+
     return Artifacts(model=model, features=config.columns)

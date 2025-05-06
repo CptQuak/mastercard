@@ -1,4 +1,3 @@
-from pyexpat import features
 from typing import List
 from pydantic import BaseModel, ConfigDict
 from sklearn.pipeline import Pipeline

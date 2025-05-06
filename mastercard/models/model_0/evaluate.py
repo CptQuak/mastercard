@@ -1,3 +1,4 @@
+from typing import Dict
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
@@ -8,7 +9,7 @@ def evaluate_pipe(
     config: Config,
     test_dataset: pd.DataFrame,
     predict_dataset: pd.DataFrame,
-):
+) -> Dict[str, float]:
     return {
         "accuracy": accuracy_score(
             test_dataset[config.target],
