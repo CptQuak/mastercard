@@ -84,7 +84,9 @@ def objective(
             mlflow.log_metrics(cv_metrics)
             return cv_metrics[config.optuna_main_metric]
         except Exception:
-            return float("-inf") if config.optuna_direction == "maximize" else float("inf")
+            error = float("-inf") if config.optuna_direction == "maximize" else float("inf")
+            mlflow.log_metric(config.optuna_main_metric, error)
+            return error
 
 
 def evaluation_loop(
