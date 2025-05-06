@@ -51,12 +51,13 @@ def objective(
     config: Config,
     fun_params: Callable[[optuna.Trial], Dict[str, Any]],
     train_dataset: pd.DataFrame,
+    parent_run_id:str,
 ):
     """
     Optuna optimization trial used for model evaluation with cross validation on training set
     to find optimal model parameters.
     """
-    with mlflow.start_run(nested=True):
+    with mlflow.start_run(nested=True, parent_run_id=parent_run_id):
         cv_metrics = []
         # extracting parameters form the experiment
         params = fun_params(trial)
@@ -104,8 +105,11 @@ def evaluation_loop(
     mlflow.set_experiment(experiment_session_id)
 
     train_dataset, test_dataset = initialize_experiment_session_data(experiment_session_id)
-    with mlflow.start_run(nested=True) as run:
+    with mlflow.start_run() as run:
         run = mlflow.active_run()
+        mlflow.set_tag("model_name", config.model_name)
+        mlflow.set_tag("experiment_session_id", experiment_session_id)
+        
         artifacts_path = f"artifacts/{run.info.run_id}"
         os.makedirs(artifacts_path)
 
@@ -116,6 +120,7 @@ def evaluation_loop(
                 config=config,
                 fun_params=fun_params,
                 train_dataset=train_dataset,
+                parent_run_id=run.info.run_id,
             ),
             n_trials=config.optuna_n_trials,
             n_jobs=config.optuna_n_jobs,
