@@ -9,7 +9,7 @@ pip install -r requirements.txt
 
 pip install -e .
 
-
+---
 # Running experiments
 
 ## Start mlflow server
@@ -29,5 +29,7 @@ In experiments/configs model create new file experiment file:
 
 
 ## Running experiments
+
 cd experiments
+
 python main.py --exp config_iris --workers 1
