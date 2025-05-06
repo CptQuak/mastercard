@@ -1,0 +1,27 @@
+[project]
+name='mastercard_hackathon'
+version="0.0.1"
+dependencies = [
+    "ipykernel>=6.29.5",
+    "jupyterlab>=4.4.2",
+    "matplotlib>=3.10.1",
+    "mlflow>=2.22.0",
+    "optuna>=4.3.0",
+    "pandas>=2.2.3",
+    "polars>=1.29.0",
+    "pyarrow>=19.0.1",
+    "pydantic>=2.11.4",
+    "scikit-learn>=1.6.1",
+    "seaborn>=0.13.2",
+]
+
+[tool.ruff]
+line-length = 150
+
+[tool.uv.sources]
+mastercard-hackathon = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "mastercard-hackathon",
+]
