@@ -1,26 +1,38 @@
 import argparse
-from functools import partial
 import importlib
+import multiprocessing as mp
 import os
-from re import I
-from typing import Any, Callable, Dict
+from functools import partial
+from typing import Any, Callable, Dict, Tuple
+
 import joblib
 import mlflow
-import mlflow.artifacts
-import mlflow.sklearn
 import optuna
 import pandas as pd
-from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
+from sklearn.model_selection import StratifiedKFold
 
 from mastercard.experiment_session.data_spliter import create_session
 from mastercard.experiment_template import Config
-import multiprocessing as mp
-
-from mastercard.models.model_0 import train
 
 
-def initialize_experiment_session_data(experiment_name):
-    exp_data_path = os.path.join("datasets", experiment_name)
+def initialize_experiment_session_data(
+    experiment_session_id: str,
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Initializes and loads experiment session data.
+
+    This function handles the creation or loading of experiment session data.
+    If a session for the given experiment name doesn't exist, it creates a new
+    session, generates train and test datasets using `create_session()`, and
+    saves them as parquet files. If a session already exists, it loads the
+    train and test datasets from the corresponding parquet files.
+
+    Args:
+        experiment_session_id (str): The name of the experiment session.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame]: A tuple containing the train and test datasets as pandas DataFrames.
+    """
+    exp_data_path = os.path.join("datasets", experiment_session_id)
     if not os.path.exists(exp_data_path):
         print("Creating new experiment session")
         os.makedirs(exp_data_path)
@@ -38,23 +50,29 @@ def objective(
     trial: optuna.Trial,
     config: Config,
     fun_params: Callable[[optuna.Trial], Dict[str, Any]],
+    train_dataset: pd.DataFrame,
 ):
+    """
+    Optuna optimization trial used for model evaluation with cross validation on training set
+    to find optimal model parameters.
+    """
     with mlflow.start_run(nested=True):
+        cv_metrics = []
+        # extracting parameters form the experiment
         params = fun_params(trial)
         model_module = importlib.import_module(f"mastercard.models.{config.model_name}")
-
+        
+        # spliting 
         X, y = train_dataset[config.columns], train_dataset[config.target]
 
-        cv_metrics = []
-
-        challenger_hyperparameters = model_module.hyperparameters.Hyperparameters(
-            **params
-        )
+        challenger_hyperparameters = model_module.hyperparameters.Hyperparameters(**params)
         mlflow.log_params(dict(config))
         mlflow.log_params(dict(challenger_hyperparameters))
 
         try:
-            for _, (train_index, val_index) in enumerate(StratifiedKFold(n_splits=5, shuffle=True, random_state=config.optuna_random_state).split(X, y)):
+            for _, (train_index, val_index) in enumerate(
+                StratifiedKFold(n_splits=5, shuffle=True, random_state=config.optuna_random_state).split(X, y)
+            ):
                 train, val = train_dataset.iloc[train_index], train_dataset.iloc[val_index]
 
                 artifacts = model_module.train_pipe(config, challenger_hyperparameters, train)
@@ -70,11 +88,20 @@ def objective(
 
 
 def evaluation_loop(
+    experiment_session_id: str,
     config: Config,
     fun_params: Callable[[optuna.Trial], Dict[str, Any]],
-    train_dataset: pd.DataFrame,
-    test_dataset: pd.DataFrame,
 ):
+    """
+    Main experiment model evaluation loop. 
+    1. Initalizes experiment session
+    2. Creates or loads dataset
+    3. Runs optuna experiments to find optimal parameters
+    4. Creates and saves model with optimal parameters
+    """
+    mlflow.set_experiment(experiment_session_id)
+
+    train_dataset, test_dataset = initialize_experiment_session_data(experiment_session_id)
     with mlflow.start_run(nested=True) as run:
         run = mlflow.active_run()
         artifacts_path = f"artifacts/{run.info.run_id}"
@@ -82,7 +109,12 @@ def evaluation_loop(
 
         study = optuna.create_study(direction=config.optuna_direction)
         study.optimize(
-            partial(objective, config=config, fun_params=fun_params),
+            partial(
+                objective,
+                config=config,
+                fun_params=fun_params,
+                train_dataset=train_dataset,
+            ),
             n_trials=config.optuna_n_trials,
             n_jobs=config.optuna_n_jobs,
         )
@@ -92,9 +124,7 @@ def evaluation_loop(
 
         model_module = importlib.import_module(f"mastercard.models.{config.model_name}")
 
-        best_hyperparameters = model_module.hyperparameters.Hyperparameters(
-            **study.best_params
-        )
+        best_hyperparameters = model_module.hyperparameters.Hyperparameters(**study.best_params)
 
         artifacts = model_module.train_pipe(config, best_hyperparameters, train_dataset)
         predict_dataset = model_module.predict_pipe(config, artifacts, test_dataset)
@@ -109,8 +139,8 @@ def evaluation_loop(
         mlflow.log_params(dict(config))
         mlflow.log_params(dict(best_hyperparameters))
         mlflow.log_metrics(metrics)
-        print('-'*20)
-        print('Final result:')
+        print("-" * 20)
+        print("Final result:")
         print(best_hyperparameters)
         print(metrics)
 
@@ -124,14 +154,21 @@ if __name__ == "__main__":
     configs_module = importlib.import_module(f"configs.{args.exp}")
 
     mlflow.set_tracking_uri(uri="http://127.0.0.1:5002")
-    experiment_name = configs_module.experiment_session_id
-    mlflow.set_experiment(experiment_name)
-
-    train_dataset, test_dataset = initialize_experiment_session_data(experiment_name)
 
     if args.workers == 1:
-        for config, fun_params in configs_module.configs:
-            evaluation_loop(config, fun_params, train_dataset, test_dataset)
+        for experiment in configs_module.experiments:
+            experiment_session_id, config, fun_params = experiment["experiment_session_id"], experiment["config"], experiment["optuna_params"]
+            evaluation_loop(experiment_session_id, config, fun_params)
     else:
         with mp.Pool(processes=args.workers) as pool:
-            pool.starmap(evaluation_loop, [(config, fun_params, train_dataset, test_dataset) for config in configs_module.configs])
+            pool.starmap(
+                evaluation_loop,
+                [
+                    (
+                        experiment["experiment_session_id"],
+                        experiment["config"],
+                        experiment["optuna_params"],
+                    )
+                    for experiment in configs_module.experiments
+                ],
+            )
