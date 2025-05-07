@@ -22,6 +22,7 @@ def train_pipe(
     model = lightgbm.LGBMClassifier(
         class_weight=hyper_params.class_weight,
         random_state=13,
+        max_depth=hyper_params.max_depth,
     )
 
     X_train = transformer.fit_transform(X_train).to_pandas()

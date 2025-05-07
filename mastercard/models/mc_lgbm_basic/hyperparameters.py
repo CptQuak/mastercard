@@ -9,5 +9,6 @@ class Hyperparameters(BaseModel):
     #### model params
     eval_metric: Literal['auc'] = "auc"
     class_weight: Literal['balanced'] = "balanced"
+    max_depth: int = -1
     
     
