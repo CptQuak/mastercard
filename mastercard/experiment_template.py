@@ -11,6 +11,7 @@ class Config(BaseModel):
     comment: str = ""
     # target column
     target: str = "is_outlier"
+    kfold_strategy: Literal['stratified', 'timeseries'] = "stratified"
     # features to consider in experiment session
     # Optuna specific config
     optuna_random_state: int = 13

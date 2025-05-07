@@ -10,6 +10,7 @@ experiments = [
             target="is_fraud",
             optuna_n_trials=10,
             optuna_main_metric='auc',
+            kfold_strategy='timeseries',
         ),
         "constant_params": {
             "numeric_features": [

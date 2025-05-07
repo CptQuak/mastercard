@@ -10,7 +10,7 @@ import mlflow
 import optuna
 import pandas as pd
 import polars
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, TimeSeriesSplit
 
 from mastercard.experiment_session.data_spliter import create_session_iris, create_session_mastercard
 from mastercard.experiment_template import Config
@@ -81,9 +81,16 @@ def objective(
         mlflow.log_params(dict(config))
         mlflow.log_params(dict(challenger_hyperparameters))
 
+        if config.kfold_strategy =='stratified':
+            stratifier = StratifiedKFold(n_splits=5, shuffle=True, random_state=config.optuna_random_state).split(X, y)
+        elif config.kfold_strategy =='timeseries':
+            stratifier = TimeSeriesSplit(n_splits=5).split(X, y)
+        else:
+            raise Exception('Invalid kfold strategy')
+
         try:
             for _, (train_index, val_index) in enumerate(
-                StratifiedKFold(n_splits=5, shuffle=True, random_state=config.optuna_random_state).split(X, y)
+                stratifier
             ):
                 train, val = train_dataset.iloc[train_index], train_dataset.iloc[val_index]
 
