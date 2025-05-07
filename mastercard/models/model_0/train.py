@@ -12,6 +12,7 @@ def train_pipe(
     hyper_params: Hyperparameters,
     dataset: pd.DataFrame,
 ) -> Artifacts:
+    features = hyper_params.numeric_features + hyper_params.categorical_features
     model = make_pipeline(
         StandardScaler(),
         LogisticRegression(
@@ -19,6 +20,6 @@ def train_pipe(
             C=hyper_params.C,
         ),
     )
-    model.fit(dataset[config.columns], dataset[config.target])
+    model.fit(dataset[features], dataset[config.target])
 
-    return Artifacts(model=model, features=config.columns)
+    return Artifacts(model=model, features=features)
