@@ -1,7 +1,7 @@
 import pandas as pd
 import polars as pl
 from mastercard.experiment_template import Config
-from mastercard.models.model_0.artifacts import Artifacts
+from mastercard.models.mc_lgbm_basic.artifacts import Artifacts
 
 
 def predict_pipe(
