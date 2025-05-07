@@ -12,7 +12,6 @@ class Config(BaseModel):
     # target column
     target: str = "is_outlier"
     # features to consider in experiment session
-    columns: List[str] = []
     # Optuna specific config
     optuna_random_state: int = 13
     optuna_n_trials: int = 20

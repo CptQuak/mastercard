@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,5 +7,7 @@ class Hyperparameters(BaseModel):
     numeric_features: List[str]
     categorical_features: List[str] = Field(default_factory=list)
     #### model params
-    penalty: Optional[str] = "l2"
-    C: Optional[float] = 1.0
+    eval_metric: Literal['auc'] = "auc"
+    class_weight: Literal['balanced'] = "balanced"
+    
+    
