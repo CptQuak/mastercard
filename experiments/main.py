@@ -10,6 +10,7 @@ import mlflow
 import optuna
 import pandas as pd
 import polars
+import polars as pl
 from sklearn.model_selection import StratifiedKFold, TimeSeriesSplit
 
 from mastercard.experiment_session.data_spliter import create_session_iris, create_session_mastercard
@@ -51,7 +52,10 @@ def initialize_experiment_session_data(
 
     else:
         print("Loading data from existing experiment session")
-        train_dataset, test_dataset = pd.read_parquet(f"{exp_data_path}/train.parquet"), pd.read_parquet(f"{exp_data_path}/test.parquet")
+        if data == "iris":
+            train_dataset, test_dataset = pd.read_parquet(f"{exp_data_path}/train.parquet"), pd.read_parquet(f"{exp_data_path}/test.parquet")
+        elif data == "mastercard":
+            train_dataset, test_dataset = pl.read_parquet(f"{exp_data_path}/train.parquet"), pl.read_parquet(f"{exp_data_path}/test.parquet")
     return train_dataset, test_dataset
 
 
@@ -60,7 +64,7 @@ def objective(
     config: Config,
     constant_params: Dict[str, Any],
     fun_params: Callable[[optuna.Trial], Dict[str, Any]],
-    train_dataset: pd.DataFrame| polars.DataFrame,
+    train_dataset: pd.DataFrame | polars.DataFrame,
     parent_run_id: str,
 ):
     """
@@ -77,22 +81,26 @@ def objective(
         features = constant_params["numeric_features"] + constant_params["categorical_features"]
         X, y = train_dataset[features], train_dataset[config.target]
 
-        challenger_hyperparameters = model_module.hyperparameters.Hyperparameters(**(constant_params|params))
+        challenger_hyperparameters = model_module.hyperparameters.Hyperparameters(**(constant_params | params))
         mlflow.log_params(dict(config))
         mlflow.log_params(dict(challenger_hyperparameters))
 
-        if config.kfold_strategy =='stratified':
+        if config.kfold_strategy == "stratified":
             stratifier = StratifiedKFold(n_splits=5, shuffle=True, random_state=config.optuna_random_state).split(X, y)
-        elif config.kfold_strategy =='timeseries':
+        elif config.kfold_strategy == "timeseries":
             stratifier = TimeSeriesSplit(n_splits=5).split(X, y)
         else:
-            raise Exception('Invalid kfold strategy')
+            raise Exception("Invalid kfold strategy")
 
         try:
-            for _, (train_index, val_index) in enumerate(
-                stratifier
-            ):
-                train, val = train_dataset.iloc[train_index], train_dataset.iloc[val_index]
+            for _, (train_index, val_index) in enumerate(stratifier):
+                if isinstance(train_dataset, pd.DataFrame):
+                    train, val = train_dataset.iloc[train_index], train_dataset.iloc[val_index]
+                elif isinstance(train_dataset, pl.DataFrame):
+                    train, val = train_dataset[train_index, :], train_dataset[val_index, :]
+                else:
+                    raise Exception("Unsupported dataset type")
+                    
 
                 artifacts = model_module.train_pipe(config, challenger_hyperparameters, train)
                 predict_dataset = model_module.predict_pipe(config, artifacts, val)
@@ -153,7 +161,7 @@ def evaluation_loop(
         model_module = importlib.import_module(f"mastercard.models.{config.model_name}")
 
         print(study.best_params)
-        best_hyperparameters = model_module.hyperparameters.Hyperparameters(**(constant_params|study.best_params))
+        best_hyperparameters = model_module.hyperparameters.Hyperparameters(**(constant_params | study.best_params))
 
         artifacts = model_module.train_pipe(config, best_hyperparameters, train_dataset)
         predict_dataset = model_module.predict_pipe(config, artifacts, test_dataset)
@@ -193,7 +201,7 @@ if __name__ == "__main__":
                 experiment["constant_params"],
                 experiment["optuna_params"],
             )
-            evaluation_loop(experiment_session_id, data, config, constant_params,fun_params)
+            evaluation_loop(experiment_session_id, data, config, constant_params, fun_params)
     else:
         with mp.Pool(processes=args.workers) as pool:
             pool.starmap(

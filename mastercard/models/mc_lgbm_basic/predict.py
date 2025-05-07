@@ -9,6 +9,10 @@ def predict_pipe(
     artifacts: Artifacts,
     test_dataset: pl.DataFrame,
 ) -> pd.DataFrame:
+    if isinstance(test_dataset, pd.DataFrame):
+        test_dataset = pl.from_pandas(test_dataset)
+    test_dataset = test_dataset.join_asof(artifacts.quarterly_statistics, on="timestamp", by="user_id")
+    
     X_test = test_dataset[artifacts.features]
     X_test = artifacts.transformer.transform(X_test).to_pandas()
     y_hat = artifacts.model.predict(X_test)

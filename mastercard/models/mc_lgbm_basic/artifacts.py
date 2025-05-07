@@ -1,3 +1,4 @@
+import polars as pl
 from typing import List
 from pydantic import BaseModel, ConfigDict
 from sklearn.base import BaseEstimator
@@ -10,3 +11,4 @@ class Artifacts(BaseModel):
     features: List[str]
     model: BaseEstimator|Pipeline
     transformer: ColumnTransformer
+    quarterly_statistics: pl.DataFrame

@@ -1,4 +1,5 @@
 import lightgbm
+import polars as pl
 import pandas as pd
 from sklearn.compose import make_column_transformer
 from mastercard.experiment_template import Config
@@ -9,9 +10,22 @@ from mastercard.models.mc_lgbm_basic.hyperparameters import Hyperparameters
 def train_pipe(
     config: Config,
     hyper_params: Hyperparameters,
-    train_dataset: pd.DataFrame,
+    train_dataset: pl.DataFrame,
 ) -> Artifacts:
-    features = hyper_params.numeric_features + hyper_params.categorical_features
+    if isinstance(train_dataset, pd.DataFrame):
+        train_dataset = pl.from_pandas(train_dataset)
+    time_features = ["amount_quarter_mean", "amount_quarter_max"]
+    quarterly_statistics = (
+        train_dataset.group_by_dynamic(index_column="timestamp", group_by=["user_id"], every="1q")
+        .agg(
+            pl.col("amount").mean().alias("amount_quarter_mean"),
+            pl.col("amount").max().alias("amount_quarter_max"),
+        )
+        .sort("timestamp")
+    )
+    train_dataset = train_dataset.join_asof(quarterly_statistics, on="timestamp", by="user_id")
+
+    features = hyper_params.numeric_features + hyper_params.categorical_features + time_features
     X_train, y_train = train_dataset[features], train_dataset[config.target]
 
     transformer = make_column_transformer(
@@ -38,4 +52,5 @@ def train_pipe(
         features=features,
         model=model,
         transformer=transformer,
+        quarterly_statistics=quarterly_statistics,
     )
