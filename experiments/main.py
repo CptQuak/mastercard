@@ -3,6 +3,7 @@ import importlib
 import multiprocessing as mp
 import os
 from functools import partial
+import traceback
 from typing import Any, Callable, Dict, Tuple
 
 import joblib
@@ -111,6 +112,7 @@ def objective(
             mlflow.log_metrics(cv_metrics)
             return cv_metrics[config.optuna_main_metric]
         except Exception:
+            print(traceback.format_exc())
             error = float("-inf") if config.optuna_direction == "maximize" else float("inf")
             mlflow.log_metric(config.optuna_main_metric, error)
             return error
