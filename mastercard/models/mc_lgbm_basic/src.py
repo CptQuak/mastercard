@@ -2,22 +2,41 @@ import numpy as np
 import polars as pl
 
 
-def compute_quarterly_statistics(df_train):
-    time_features = ["amount_quarter_mean", "amount_quarter_max", 'pcnt_frauds']
-    quarterly_statistics = (
-        df_train.group_by_dynamic(
-            index_column="timestamp",
-            group_by=["user_id"],
-            every="1q",
+def compute_user_time_statistics(df_train: pl.DataFrame):
+    time_features = ["amount_mean", "amount_max", "number_of_transactions"]
+    time_ranges = [
+        ("1h", 'hourly'),  # (1 hour)
+        ("1d", 'daily'),  # (1 calendar day)
+        ("1w", 'weekly'),  # (1 calendar week)
+        ("1mo", 'monthly'),  # (1 calendar month)
+        ("1q", 'quarterly'),  # (1 calendar quarter)
+        ("1y", 'yearly'),  # (1 calendar year)
+    ]
+    
+    all_time_features = [
+        f'{time}_{naming}' for time in time_features
+        for _, naming in time_ranges
+    ]
+    
+    df_train = df_train.sort("timestamp")
+    user_statistics = {}
+    
+    for time_range, name in time_ranges:
+        user_statistics[name] = (
+            df_train.group_by_dynamic(
+                index_column="timestamp",
+                group_by=["user_id"],
+                every=time_range,
+            )
+            .agg(
+                pl.col("amount").mean().alias(f"amount_mean_{name}"),
+                pl.col("amount").max().alias(f"amount_max_{name}"),
+                (pl.col("is_fraud").sum() / pl.col("is_fraud").len()).alias(f"pcnt_frauds_{name}"),
+                pl.col("amount").len().alias(f"number_of_transactions_{name}"),
+            )
+            .sort("timestamp")
         )
-        .agg(
-            pl.col("amount").mean().alias("amount_quarter_mean"),
-            pl.col("amount").max().alias("amount_quarter_max"),
-            (pl.col("is_fraud").sum() / pl.col("is_fraud").len()).alias("pcnt_frauds"),
-        )
-        .sort("timestamp")
-    )
-    return quarterly_statistics, time_features
+    return user_statistics, all_time_features
 
 
 def compute_time_features(df):
