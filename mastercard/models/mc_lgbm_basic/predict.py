@@ -13,7 +13,7 @@ def predict_pipe(
     if isinstance(test_dataset, pd.DataFrame):
         test_dataset = pl.from_pandas(test_dataset)
         
-    if artifacts.quarterly_statistics is not None:
+    if artifacts.hyperparams["quarterly_statistics"]:
         test_dataset = test_dataset.join_asof(artifacts.quarterly_statistics, on="timestamp", by="user_id")
         
     if artifacts.hyperparams["time_features"]:
