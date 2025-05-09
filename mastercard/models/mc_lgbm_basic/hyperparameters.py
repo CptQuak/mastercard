@@ -11,6 +11,7 @@ class Hyperparameters(BaseModel):
     class_weight: Literal["balanced"] = "balanced"
     n_jobs: int = 2
     quarterly_statistics: bool = True
+    time_features: bool = True
     max_depth: int = -1
     num_leaves: int = 10 
     min_data_in_leaf: int = 10

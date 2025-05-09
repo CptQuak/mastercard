@@ -5,6 +5,7 @@ from sklearn.compose import make_column_transformer
 from mastercard.experiment_template import Config
 from mastercard.models.mc_lgbm_basic.artifacts import Artifacts
 from mastercard.models.mc_lgbm_basic.hyperparameters import Hyperparameters
+from mastercard.models.mc_lgbm_basic.src import compute_quarterly_statistics, compute_time_features
 
 
 def train_pipe(
@@ -19,16 +20,12 @@ def train_pipe(
 
     quarterly_statistics = None
     if hyper_params.quarterly_statistics:
-        time_features = ["amount_quarter_mean", "amount_quarter_max"]
-        quarterly_statistics = (
-            train_dataset.group_by_dynamic(index_column="timestamp", group_by=["user_id"], every="1q")
-            .agg(
-                pl.col("amount").mean().alias("amount_quarter_mean"),
-                pl.col("amount").max().alias("amount_quarter_max"),
-            )
-            .sort("timestamp")
-        )
+        quarterly_statistics, time_features = compute_quarterly_statistics(train_dataset)
         train_dataset = train_dataset.join_asof(quarterly_statistics, on="timestamp", by="user_id")
+        numeric_features = numeric_features + time_features
+
+    if hyper_params.time_features:
+        train_dataset, time_features = compute_time_features(train_dataset)
         numeric_features = numeric_features + time_features
 
     features = numeric_features + categorical_features

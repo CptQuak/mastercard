@@ -11,5 +11,5 @@ class Artifacts(BaseModel):
     features: List[str]
     model: BaseEstimator|Pipeline
     transformer: ColumnTransformer
-    quarterly_statistics: pl.DataFrame | None = None
     hyperparams: Dict[str, Any]
+    quarterly_statistics: pl.DataFrame | None = None

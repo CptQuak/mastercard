@@ -48,6 +48,7 @@ experiments = [
         "optuna_params": lambda trial: {
             # feature based
             "quarterly_statistics": trial.suggest_categorical("quarterly_statistics", [True, False]),
+            "time_features": trial.suggest_categorical("time_features", [True, False]),
             # model based
             "max_depth": trial.suggest_int("max_depth", 5, 100),
             "num_leaves": trial.suggest_int("num_leaves", 2, 256),
