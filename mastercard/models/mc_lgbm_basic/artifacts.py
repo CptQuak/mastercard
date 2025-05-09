@@ -1,5 +1,5 @@
 import polars as pl
-from typing import List
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
@@ -11,4 +11,5 @@ class Artifacts(BaseModel):
     features: List[str]
     model: BaseEstimator|Pipeline
     transformer: ColumnTransformer
-    quarterly_statistics: pl.DataFrame
+    quarterly_statistics: pl.DataFrame | None = None
+    hyperparams: Dict[str, Any]
