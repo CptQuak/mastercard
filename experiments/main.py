@@ -89,7 +89,7 @@ def objective(
         if config.kfold_strategy == "stratified":
             stratifier = StratifiedKFold(n_splits=5, shuffle=True, random_state=config.optuna_random_state).split(X, y)
         elif config.kfold_strategy == "timeseries":
-            stratifier = TimeSeriesSplit(n_splits=5).split(X, y)
+            stratifier = TimeSeriesSplit(n_splits=2).split(X, y)
         else:
             raise Exception("Invalid kfold strategy")
 

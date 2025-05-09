@@ -1,7 +1,12 @@
+import sklearn
 import lightgbm
 import polars as pl
 import pandas as pd
+from sklearn.frozen import FrozenEstimator
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit, TimeSeriesSplit, TunedThresholdClassifierCV, train_test_split
 from sklearn.compose import make_column_transformer
+from sklearn.pipeline import Pipeline
 from mastercard.experiment_template import Config
 from mastercard.models.mc_lgbm_basic.artifacts import Artifacts
 from mastercard.models.mc_lgbm_basic.hyperparameters import Hyperparameters
@@ -36,18 +41,34 @@ def train_pipe(
         ("passthrough", features),
         remainder="passthrough",
     ).set_output(transform="polars")
-    print(hyper_params)
-    print(dict(hyper_params))
-    model = lightgbm.LGBMClassifier(random_state=13, **dict(hyper_params))
 
     X_train = transformer.fit_transform(X_train).to_pandas()
     categorical_features_trns = [i for i in X_train.columns if i.split("__")[1] in hyper_params.categorical_features]
+    model = lightgbm.LGBMClassifier(
+        random_state=13,
+        # n_estimators=1,
+        # max_depth=10,
+        **dict(hyper_params),
+    )
+    # model.fit(
+    #     X_train,
+    #     y_train,
+    #     eval_metric=hyper_params.eval_metric,
+    #     categorical_feature=categorical_features_trns,
+    # )
+
+    # cv = TimeSeriesSplit(2)
+    model = Pipeline([("lgbm", model)])
+    cv = StratifiedKFold(2, shuffle=True, random_state=13)
+    model = CalibratedClassifierCV(model, method="isotonic", cv=cv, ensemble=False, n_jobs=3)
+    cv = StratifiedShuffleSplit(n_splits=1, test_size=0.3, random_state=13)
+    model = TunedThresholdClassifierCV(model, scoring="balanced_accuracy", cv=cv, refit=True)
     model.fit(
         X_train,
         y_train,
-        eval_metric=hyper_params.eval_metric,
-        categorical_feature=categorical_features_trns,
     )
+    # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=13, stratify=y_train)
+    # .fit(X_train, y_train)
 
     return Artifacts(
         features=features,

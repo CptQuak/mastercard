@@ -3,7 +3,7 @@ import polars as pl
 
 
 def compute_quarterly_statistics(df_train):
-    time_features = ["amount_quarter_mean", "amount_quarter_max"]
+    time_features = ["amount_quarter_mean", "amount_quarter_max", 'pcnt_frauds']
     quarterly_statistics = (
         df_train.group_by_dynamic(
             index_column="timestamp",
@@ -13,6 +13,7 @@ def compute_quarterly_statistics(df_train):
         .agg(
             pl.col("amount").mean().alias("amount_quarter_mean"),
             pl.col("amount").max().alias("amount_quarter_max"),
+            (pl.col("is_fraud").sum() / pl.col("is_fraud").len()).alias("pcnt_frauds"),
         )
         .sort("timestamp")
     )
