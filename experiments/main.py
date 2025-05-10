@@ -72,7 +72,7 @@ def objective(
     Optuna optimization trial used for model evaluation with cross validation on training set
     to find optimal model parameters.
     """
-    with mlflow.start_run(nested=True, parent_run_id=parent_run_id):
+    with mlflow.start_run(nested=True, parent_run_id=parent_run_id) as nested_run:
         cv_metrics = []
         # extracting parameters form the experiment
         params = fun_params(trial)
@@ -89,7 +89,7 @@ def objective(
         if config.kfold_strategy == "stratified":
             stratifier = StratifiedKFold(n_splits=5, shuffle=True, random_state=config.optuna_random_state).split(X, y)
         elif config.kfold_strategy == "timeseries":
-            stratifier = TimeSeriesSplit(n_splits=5).split(X, y)
+            stratifier = TimeSeriesSplit(n_splits=2).split(X, y)
         else:
             raise Exception("Invalid kfold strategy")
 
@@ -110,6 +110,15 @@ def objective(
 
             cv_metrics = pd.DataFrame(cv_metrics).mean().to_dict()
             mlflow.log_metrics(cv_metrics)
+            artifacts_path = f"artifacts/{parent_run_id}/{nested_run.info.run_id}/"
+            os.makedirs(artifacts_path)
+            
+            for name, artifact in dict(artifacts).items():
+                try:
+                    joblib.dump(artifact, f"{artifacts_path}/{name}.joblib")
+                except Exception:
+                    print(f"Failed to save model artifact: {name}")
+            
             return cv_metrics[config.optuna_main_metric]
         except Exception:
             print(traceback.format_exc())
