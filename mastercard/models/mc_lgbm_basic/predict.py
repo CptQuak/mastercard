@@ -13,9 +13,8 @@ def predict_pipe(
     if isinstance(test_dataset, pd.DataFrame):
         test_dataset = pl.from_pandas(test_dataset)
         
-    if artifacts.hyperparams["user_statistics"]:
-        for stats in artifacts.hyperparams["user_statistics"].values():
-            test_dataset = test_dataset.join_asof(stats, on="timestamp", by="user_id")
+    for stats in artifacts.user_statistics.values():
+        test_dataset = test_dataset.join_asof(stats, on="timestamp", by="user_id")
         # test_dataset = test_dataset.join_asof(artifacts.quarterly_statistics, on="timestamp", by="user_id")
         
     if artifacts.hyperparams["time_features"]:

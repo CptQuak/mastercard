@@ -1,6 +1,6 @@
 import polars as pl
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -12,4 +12,4 @@ class Artifacts(BaseModel):
     model: BaseEstimator|Pipeline
     transformer: ColumnTransformer
     hyperparams: Dict[str, Any]
-    user_statistics: pl.DataFrame | None = None
+    user_statistics: Dict[str, pl.DataFrame] = Field(default_factory=dict)
