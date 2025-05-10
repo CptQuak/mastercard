@@ -194,6 +194,7 @@ def evaluation_loop(
 
 
 if __name__ == "__main__":
+    pl.enable_string_cache()
     parser = argparse.ArgumentParser(prog="Experiment runner")
     parser.add_argument("--exp", type=str, help="Name of experiment configuration file")
     parser.add_argument("--workers", type=int, default=1, help="Name of experiment configuration file")
@@ -201,7 +202,7 @@ if __name__ == "__main__":
 
     configs_module = importlib.import_module(f"configs.{args.exp}")
 
-    mlflow.set_tracking_uri(uri="http://127.0.0.1:5002")
+    mlflow.set_tracking_uri(uri="http://127.0.0.1:5001")
 
     if args.workers == 1:
         for experiment in configs_module.experiments:
