@@ -48,7 +48,7 @@ experiments = [
         "optuna_params": lambda trial: {
             # feature based
             "prob_calibration": trial.suggest_categorical("prob_calibration", [False]),
-            "user_statistics": trial.suggest_categorical("user_statistics", [False]),
+            "user_statistics": trial.suggest_categorical("user_statistics", [True]),
             "time_features": trial.suggest_categorical("time_features", [True]),
             # model based
             "max_depth": trial.suggest_int("max_depth", 5, 100),

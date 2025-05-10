@@ -10,7 +10,7 @@ from sklearn.pipeline import Pipeline
 from mastercard.experiment_template import Config
 from mastercard.models.mc_lgbm_basic.artifacts import Artifacts
 from mastercard.models.mc_lgbm_basic.hyperparameters import Hyperparameters
-from mastercard.models.mc_lgbm_basic.src import compute_user_time_statistics, compute_time_features
+from mastercard.models.mc_lgbm_basic.src import compute_user_time_statistics, compute_time_features, interesting_features
 
 
 def train_pipe(
@@ -33,6 +33,9 @@ def train_pipe(
     if hyper_params.time_features:
         train_dataset, time_features = compute_time_features(train_dataset)
         numeric_features = numeric_features + time_features
+
+    train_dataset, feat = interesting_features(train_dataset)
+    numeric_features = numeric_features + feat
 
     features = numeric_features + categorical_features
     X_train, y_train = train_dataset[features], train_dataset[config.target]
