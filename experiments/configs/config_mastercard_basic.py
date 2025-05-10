@@ -27,7 +27,7 @@ experiments = [
                 # "has_fraud_history_merchant",
             ],
             "categorical_features": [
-                "user_id",
+                # "user_id",
                 # "merchant_id",
                 "channel",
                 "currency",
