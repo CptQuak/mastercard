@@ -47,12 +47,13 @@ experiments = [
         },
         "optuna_params": lambda trial: {
             # feature based
-            "user_statistics": trial.suggest_categorical("user_statistics", [True]),
-            "time_features": trial.suggest_categorical("time_features", [True]),
+            "prob_calibration": trial.suggest_categorical("prob_calibration", [False]),
+            "user_statistics": trial.suggest_categorical("user_statistics", [False]),
+            "time_features": trial.suggest_categorical("time_features", [False]),
             # model based
             "max_depth": trial.suggest_int("max_depth", 5, 100),
             "num_leaves": trial.suggest_int("num_leaves", 2, 256),
-            "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 5, 100),
+            "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 5, 30),
             "learning_rate": trial.suggest_float("learning_rate", 1e-5, 1e-1, log=True),
             "feature_fraction": trial.suggest_float("feature_fraction", 0.4, 1.0),
             "bagging_fraction": trial.suggest_float("bagging_fraction", 0.4, 1.0),

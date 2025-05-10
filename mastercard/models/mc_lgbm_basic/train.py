@@ -23,7 +23,7 @@ def train_pipe(
 
     numeric_features, categorical_features = hyper_params.numeric_features, hyper_params.categorical_features
 
-    user_statistics = None
+    user_statistics = {}
     if hyper_params.user_statistics:
         user_statistics, time_features = compute_user_time_statistics(train_dataset)
         for stats in user_statistics.values():
@@ -60,14 +60,12 @@ def train_pipe(
 
     # cv = TimeSeriesSplit(2)
     model = Pipeline([("lgbm", model)])
-    cv = StratifiedKFold(2, shuffle=True, random_state=13)
-    model = CalibratedClassifierCV(model, method="isotonic", cv=cv, ensemble=False, n_jobs=3)
-    cv = StratifiedShuffleSplit(n_splits=1, test_size=0.3, random_state=13)
-    model = TunedThresholdClassifierCV(model, scoring="balanced_accuracy", cv=cv, refit=True)
-    model.fit(
-        X_train,
-        y_train,
-    )
+    if hyper_params.prob_calibration:
+        cv = StratifiedKFold(2, shuffle=True, random_state=13)
+        model = CalibratedClassifierCV(model, method="isotonic", cv=cv, ensemble=False, n_jobs=3)
+        cv = StratifiedShuffleSplit(n_splits=1, test_size=0.3, random_state=13)
+        model = TunedThresholdClassifierCV(model, scoring="balanced_accuracy", cv=cv, refit=True)
+    model.fit(X_train, y_train)
     # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=13, stratify=y_train)
     # .fit(X_train, y_train)
 
