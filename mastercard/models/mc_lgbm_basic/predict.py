@@ -20,7 +20,7 @@ def predict_pipe(
         
     if artifacts.hyperparams["time_features"]:
         test_dataset, _ = compute_time_features(test_dataset)
-    
+
     X_test = test_dataset[artifacts.features]
     X_test = artifacts.transformer.transform(X_test).to_pandas()
     y_hat = artifacts.model.predict(X_test)
