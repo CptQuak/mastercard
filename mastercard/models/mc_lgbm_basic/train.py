@@ -20,7 +20,7 @@ def train_pipe(
 ) -> Artifacts:
     if isinstance(train_dataset, pd.DataFrame):
         train_dataset = pl.from_pandas(train_dataset)
-
+    train_dataset_init = train_dataset.clone()
     numeric_features, categorical_features = hyper_params.numeric_features, hyper_params.categorical_features
 
     user_statistics = {}
@@ -75,4 +75,5 @@ def train_pipe(
         transformer=transformer,
         user_statistics=user_statistics,
         hyperparams=dict(hyper_params),
+        train_dataset=train_dataset_init,
     )

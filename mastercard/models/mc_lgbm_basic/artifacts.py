@@ -13,3 +13,4 @@ class Artifacts(BaseModel):
     transformer: ColumnTransformer
     hyperparams: Dict[str, Any]
     user_statistics: Dict[str, pl.DataFrame] = Field(default_factory=dict)
+    train_dataset: Optional[pl.DataFrame] = None
