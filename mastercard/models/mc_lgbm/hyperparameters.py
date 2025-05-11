@@ -1,5 +1,8 @@
 from typing import List, Literal, Optional
+from lightgbm import LGBMClassifier
 from pydantic import BaseModel, ConfigDict, Field
+
+LGBMClassifier
 
 
 class Hyperparameters(BaseModel):
@@ -13,15 +16,11 @@ class Hyperparameters(BaseModel):
     prob_calibration: bool = True
     user_statistics: bool = True
     time_features: bool = True
+    boosting_type: Literal["gbdt", "dart"] = "gbdt"
+    num_leaves: int = 31
     max_depth: int = -1
-    num_leaves: int = 10
-    min_data_in_leaf: int = 10
     learning_rate: float = 1e-1
-    feature_fraction: float = 0.8
-    bagging_fraction: float = 0.8
-    boosting_type: Literal["gbdt", "dart"] = "dart"
     n_estimators: int = 100
     min_split_gain: float = 0.1
     reg_alpha: float = 1e-1
     reg_lambda: float = 1e-1
-    min_gain_to_split: float = 0.1

@@ -86,10 +86,11 @@ def objective(
         mlflow.log_params(dict(config))
         mlflow.log_params(dict(challenger_hyperparameters))
 
+        n_splits = 5
         if config.kfold_strategy == "stratified":
-            stratifier = StratifiedKFold(n_splits=5, shuffle=True, random_state=config.optuna_random_state).split(X, y)
+            stratifier = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=config.optuna_random_state).split(X, y)
         elif config.kfold_strategy == "timeseries":
-            stratifier = TimeSeriesSplit(n_splits=2).split(X, y)
+            stratifier = TimeSeriesSplit(n_splits=n_splits).split(X, y)
         else:
             raise Exception("Invalid kfold strategy")
 
@@ -187,6 +188,12 @@ def evaluation_loop(
         mlflow.log_params(dict(config))
         mlflow.log_params(dict(best_hyperparameters))
         mlflow.log_metrics(metrics)
+        
+        predict_dataset = model_module.predict_pipe(config, artifacts, train_dataset)
+        metrics = model_module.evaluate.evaluate_pipe(config, train_dataset, predict_dataset)
+        metrics = {f'train_{k}': v for k, v in metrics.items()}
+        mlflow.log_metrics(metrics)
+        
         print("-" * 20)
         print("Final result:")
         print(best_hyperparameters)

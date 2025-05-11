@@ -14,6 +14,7 @@ dependencies = [
     "pydantic>=2.11.4",
     "scikit-learn>=1.6.1",
     "seaborn>=0.13.2",
+    "skrub>=0.5.3",
 ]
 
 [tool.ruff]

@@ -10,7 +10,6 @@ class Artifacts(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     features: List[str]
     model: BaseEstimator|Pipeline
-    transformer: ColumnTransformer
     hyperparams: Dict[str, Any]
     user_statistics: Dict[str, pl.DataFrame] = Field(default_factory=dict)
     train_dataset: Optional[pl.DataFrame] = None
