@@ -8,7 +8,8 @@ experiments = [
         "config": Config(
             model_name="mc_logistic",
             target="is_fraud",
-            optuna_n_trials=10,
+            optuna_n_trials=150,
+            optuna_n_jobs=6,
             optuna_main_metric='auc',
             kfold_strategy='timeseries',
         ),
