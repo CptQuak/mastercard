@@ -191,13 +191,14 @@ def evaluation_loop(
         
         predict_dataset = model_module.predict_pipe(config, artifacts, train_dataset)
         metrics = model_module.evaluate.evaluate_pipe(config, train_dataset, predict_dataset)
-        metrics = {f'train_{k}': v for k, v in metrics.items()}
-        mlflow.log_metrics(metrics)
+        train_metrics = {f'train_{k}': v for k, v in metrics.items()}
+        mlflow.log_metrics(train_metrics)
         
         print("-" * 20)
         print("Final result:")
         print(best_hyperparameters)
         print(metrics)
+        print(train_metrics)
 
 
 if __name__ == "__main__":
