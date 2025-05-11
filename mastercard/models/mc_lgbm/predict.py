@@ -1,8 +1,8 @@
 import pandas as pd
 import polars as pl
 from mastercard.experiment_template import Config
-from mastercard.models.mc_lgbm_basic.artifacts import Artifacts
-from mastercard.models.mc_lgbm_basic.src import compute_time_features, compute_user_time_statistics, interesting_features
+from mastercard.models.mc_lgbm.artifacts import Artifacts
+from mastercard.data_proc.src import compute_time_features, compute_user_time_statistics, interesting_features
 
 def predict_pipe(
     config: Config,
@@ -23,8 +23,7 @@ def predict_pipe(
 
     test_dataset, _ = interesting_features(test_dataset)
 
-    X_test = test_dataset[artifacts.features]
-    X_test = artifacts.transformer.transform(X_test).to_pandas()
+    X_test = test_dataset[artifacts.features].to_pandas(use_pyarrow_extension_array=True)
     y_hat = artifacts.model.predict(X_test)
     y_hat_proba = artifacts.model.predict_proba(X_test)
 

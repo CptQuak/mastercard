@@ -1164,6 +1164,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "scikit-learn" },
     { name = "seaborn" },
+    { name = "skrub" },
 ]
 
 [package.dev-dependencies]
@@ -1185,6 +1186,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.11.4" },
     { name = "scikit-learn", specifier = ">=1.6.1" },
     { name = "seaborn", specifier = ">=0.13.2" },
+    { name = "skrub", specifier = ">=0.5.3" },
 ]
 
 [package.metadata.requires-dev]
@@ -2157,6 +2159,25 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
+]
+
+[[package]]
+name = "skrub"
+version = "0.5.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jinja2" },
+    { name = "matplotlib" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "pandas" },
+    { name = "requests" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b4/a1/8d5a0db7200525426829c1a39f77bd07a17ced7b998bf43cc0f7e555a85a/skrub-0.5.3.tar.gz", hash = "sha256:a0680a1d303d51378a13b5dfe9948e561f7a096a60ecfe3d73c3cfcf8cf6c1e4", size = 6525425, upload-time = "2025-04-03T13:37:36.878Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/80/cf/5a1e0dabfa3cad1ab9b09e690fede4aa8fdc0c04d9d7ec8aa9338d56e1e4/skrub-0.5.3-py3-none-any.whl", hash = "sha256:b6ba417fa83d1f7e9a69656e0860b061381b9bd19808692a2b5bef8588c72775", size = 339972, upload-time = "2025-04-03T13:37:34.167Z" },
 ]
 
 [[package]]
