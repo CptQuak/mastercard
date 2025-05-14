@@ -31,4 +31,4 @@ In experiments/configs model create new file experiment file:
 
 cd experiments
 
-python main.py --exp config_iris
+python main.py --exp config_mastercard_logistic
