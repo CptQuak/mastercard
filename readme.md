@@ -13,7 +13,7 @@ pip install -e .
 # Running experiments
 
 ## Start mlflow server
-mlflow server --host 127.0.0.1 --port 5002
+mlflow server --host 127.0.0.1 --port 5001
 
 ## Creating experiment session
 
