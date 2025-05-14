@@ -1,5 +1,5 @@
 [project]
-name='mastercard_hackathon'
+name='mastercard'
 version="0.0.1"
 dependencies = [
     "ipykernel>=6.29.5",
@@ -22,9 +22,9 @@ dependencies = [
 line-length = 150
 
 [tool.uv.sources]
-mastercard-hackathon = { workspace = true }
+mastercard = { workspace = true }
 
 [dependency-groups]
 dev = [
-    "mastercard-hackathon",
+    "mastercard",
 ]
