@@ -5,25 +5,6 @@ from sklearn.datasets import load_iris
 import polars as pl
 
 
-def create_session_iris(random_seed=13) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    df = load_iris(as_frame=True)["frame"]
-
-    train_dataset, test_dataset = [], []
-    for value in df["target"].unique():
-        group = df[df["target"] == value].copy()
-
-        test = group.sample(n=int(len(group) * 0.3), random_state=random_seed)
-        train = group.drop(test.index)
-
-        train_dataset.append(train), test_dataset.append(test)
-
-    train_dataset, test_dataset = (
-        pd.concat(train_dataset, ignore_index=True),
-        pd.concat(test_dataset, ignore_index=True),
-    )
-    return train_dataset, test_dataset
-
-
 def create_session_mastercard(data_path="../datasets", random_seed=13) -> Tuple[pl.DataFrame, pl.DataFrame]:
     df_merchants = pl.read_csv(f"{data_path}/merchants.csv").cast({i: pl.Categorical for i in ["merchant_id", "category", "country"]})
     df_merchants = df_merchants.rename({i: f"{i}_merchant" for i in df_merchants.columns[1:]})
