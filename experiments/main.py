@@ -14,7 +14,7 @@ import polars
 import polars as pl
 from sklearn.model_selection import StratifiedKFold, TimeSeriesSplit
 
-from mastercard.experiment_session.data_spliter import create_session_iris, create_session_mastercard
+from mastercard.experiment_session.data_spliter import create_session_mastercard
 from mastercard.experiment_template import Config
 
 
@@ -40,11 +40,7 @@ def initialize_experiment_session_data(
     if not os.path.exists(exp_data_path):
         print("Creating new experiment session")
         os.makedirs(exp_data_path)
-        if data == "iris":
-            train_dataset, test_dataset = create_session_iris()
-            train_dataset.to_parquet(f"{exp_data_path}/train.parquet")
-            test_dataset.to_parquet(f"{exp_data_path}/test.parquet")
-        elif data == "mastercard":
+        if data == "mastercard":
             train_dataset, test_dataset = create_session_mastercard()
             train_dataset.write_parquet(f"{exp_data_path}/train.parquet")
             test_dataset.write_parquet(f"{exp_data_path}/test.parquet")
