@@ -29,12 +29,16 @@ def plot_city(df_city, grid_gdf, grid_with_counts, value_column='observation_cou
     scatter_trace = go.Scattermapbox(
         lat=df_city["latitude"].to_list(),
         lon=df_city["longitude"].to_list(),
-        mode='markers',
+        mode='markers+text',
         marker=go.scattermapbox.Marker(
-            size=5, # Adjust marker size as needed
-            opacity=0.8
+            size=6,
+            color='blue',
+            opacity=0.7
         ),
-        name="Paczkomaty" 
+        text=["📦"] * len(df_city),
+        textposition="top right",
+        textfont=dict(size=14),
+        name="Paczkomaty"
     )
 
     fig.add_trace(scatter_trace)

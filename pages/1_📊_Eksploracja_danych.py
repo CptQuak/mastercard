@@ -6,9 +6,9 @@ import pandas as pd
 import polars as pl
 import joblib
 
-import functions.boxes as boxes
-import functions.plots as plots
-import functions.models as models
+from functions import boxes
+from functions import plots
+from functions import models, features
 
 # --- PARAMETRY ---
 path = "datasets/hack/paczkomaty.json"
@@ -26,7 +26,7 @@ st.header("Wybór lokalizacji")
 # Text input
 city = st.selectbox(
     "Wybierz miasto do wyświetlenia",
-    options=["Białystok", "Warszawa", "Lublin"]
+    options=["Białystok", "Lublin"]
 )
 
 # Reading dataset

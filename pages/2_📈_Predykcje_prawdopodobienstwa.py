@@ -8,9 +8,9 @@ import joblib
 
 from streamlit_plotly_events import plotly_events
 
-import functions.boxes as boxes
-import functions.plots as plots
-import functions.models as models
+from functions import boxes
+from functions import plots
+from functions import models, features
 
 # --- PARAMETRY ---
 path = "datasets/hack/paczkomaty.json"
@@ -18,6 +18,11 @@ model_path = "model.joblib"
 X_train_path = "X_train.joblib"
 y_train_path = "y_train.joblib"
 clicked_id = 1
+
+city_dict = {
+    "Białystok": "bialystok",
+    "Lublin": "lublin"
+}
 # ------------------------
 
 st.set_page_config(layout="wide")
@@ -31,7 +36,7 @@ st.header("Wybór lokalizacji")
 # City selectbox
 city = st.selectbox(
     "Wybierz miasto do wyświetlenia",
-    options=["Białystok", "Warszawa", "Lublin"]
+    options=["Białystok", "Lublin"]
 )
 
 # Header
@@ -52,7 +57,9 @@ struct_columns = [col_name for col_name, dtype in df.schema.items() if isinstanc
 df = df.unnest(struct_columns)
 
 # Creating city grid
+city_data = pl.read_parquet(f'{city_dict[city]}.parquet')
 df_city, grid_gdf, grid_with_counts = boxes.create_city_grid(df, city)
+grid_gdf, grid_with_counts = features.add_hex_features(df_city, grid_gdf, grid_with_counts, city_data)
 
 # Getting predictions
 predicts = models.model_predict(model, df_city, grid_gdf, grid_with_counts)
@@ -92,7 +99,7 @@ with left_col:
     preds.result.iloc[len(preds.result) -1, 0 ] = 'total'
     
     # Create the figure
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(1, 1, figsize=(10, 30))
 
     # Plot your data
     ax.plot(preds.result['cumulative'], preds.result['variable_name'], '-')
