@@ -1,0 +1,44 @@
+import streamlit as st
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import polars as pl
+import joblib
+
+import functions.boxes as boxes
+import functions.plots as plots
+import functions.models as models
+
+# --- PARAMETRY ---
+path = "local/datasets/hack/paczkomaty.json"
+model_path = "notebooks/model.joblib"
+
+# ------------------------
+
+st.title("Predykcje")
+
+# Header
+st.header("Wybór lokalizacji")
+
+# Text input
+city = st.selectbox(
+    "Wybierz miasto do wyświetlenia",
+    options=["Białystok", "Warszawa", "Lublin"]
+)
+
+model = joblib.load(model_path)
+
+df = pd.read_json(path)
+df = pl.from_pandas(df)
+struct_columns = [col_name for col_name, dtype in df.schema.items() if isinstance(dtype, pl.Struct)]
+df = df.unnest(struct_columns)
+
+df_city, grid_gdf, grid_with_counts = boxes.create_city_grid(df, 'Lublin')
+predicts = models.model_predict(model, df_city, grid_gdf, grid_with_counts)
+
+fig_plotly = plots.plot_city(df_city, grid_gdf, predicts, 'target')
+
+# Wyświetlanie mapy
+st.title("Mapa miasta")
+st.plotly_chart(fig_plotly, use_container_width=True)
