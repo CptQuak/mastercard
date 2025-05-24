@@ -6,6 +6,8 @@ import pandas as pd
 import polars as pl
 import joblib
 
+from streamlit_plotly_events import plotly_events
+
 import functions.boxes as boxes
 import functions.plots as plots
 import functions.models as models
@@ -15,6 +17,7 @@ path = "datasets/hack/paczkomaty.json"
 model_path = "model.joblib"
 X_train_path = "X_train.joblib"
 y_train_path = "y_train.joblib"
+clicked_id = 1
 
 # ------------------------
 
@@ -46,7 +49,7 @@ df = pl.from_pandas(df)
 struct_columns = [col_name for col_name, dtype in df.schema.items() if isinstance(dtype, pl.Struct)]
 df = df.unnest(struct_columns)
 
-df_city, grid_gdf, grid_with_counts = boxes.create_city_grid(df, 'Lublin')
+df_city, grid_gdf, grid_with_counts = boxes.create_city_grid(df, city)
 predicts = models.model_predict(model, df_city, grid_gdf, grid_with_counts)
 
 fig_plotly = plots.plot_city(df_city, grid_gdf, predicts, 'target')
@@ -55,16 +58,34 @@ fig_plotly = plots.plot_city(df_city, grid_gdf, predicts, 'target')
 # Create two columns (panels)
 left_col, right_col = st.columns([0.7, 1.3])
 
+# Right Panel Content
+with right_col:
+    st.header("Mapa miasta")
+
+    clicked_points = plotly_events(
+        fig_plotly,
+        click_event=True,
+        select_event=False,
+        hover_event=False,
+        override_height=700,
+        override_width="100%",
+    )
+
+    # Show clicked info
+    if clicked_points:
+        clicked_id = clicked_points[0].get("pointIndex")
+    else:
+        clicked_id = 1
+
+
 # Left Panel Content
 with left_col:
     st.header("Informacje o predykcji")
-    preds = models.explain_prediction(grid_gdf, 1, model, X_train, y_train)
+    preds = models.explain_prediction(grid_gdf, clicked_id, model, X_train, y_train)
+    preds.result.iloc[len(preds.result) -1, 0 ] = 'total'
     
     # Create the figure
     fig, ax = plt.subplots()
-
-    # Temporary margin on top
-    st.markdown("<br>", unsafe_allow_html=True)
 
     # Plot your data
     ax.plot(preds.result['cumulative'], preds.result['variable_name'], '-')
@@ -72,7 +93,4 @@ with left_col:
     # Show in Streamlit
     st.pyplot(fig)
 
-# Right Panel Content
-with right_col:
-    st.header("Mapa miasta")
-    st.plotly_chart(fig_plotly, use_container_width=True)
+    st.write(f"Statystyki wyświetlane dla segmentu: {clicked_id}")
