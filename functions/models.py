@@ -79,7 +79,8 @@ def explain_prediction(grid_gdf, idx, model, X_train, y_train):
     X_eval_single = X_eval.iloc[idx:]
     explainer = shap.Explainer(model.predict, X_eval_single)
     shap_values = explainer(X_eval_single)
-    fig = shap.plots.waterfall(shap_values[1])
+    fig, ax = plt.subplots()
+    ax = shap.plots.waterfall(shap_values[1])
     return fig
 
 def explain_prediction_force_plot(grid_gdf, idx, model, X_train, y_train):
