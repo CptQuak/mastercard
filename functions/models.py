@@ -6,6 +6,7 @@ import pandas as pd
 
 import polars as pl
 import seaborn as sns
+from sklearn.discriminant_analysis import StandardScaler
 from sklearn.model_selection import train_test_split
 import polars as pl
 import plotly.express as px
@@ -18,6 +19,7 @@ import plotly.express as px
 from shapely.geometry import Polygon, box
 import numpy as np 
 from geopy.geocoders import Nominatim
+from sklearn.pipeline import make_pipeline
 
 
 def _add_features(grid_gdf, train=True, model=None):
@@ -49,14 +51,17 @@ def _create_training_frame(df_city, grid_gdf, grid_with_counts):
 def model_fit(df_city, grid_gdf, grid_with_counts):
     X, y = _create_training_frame(df_city, grid_gdf, grid_with_counts)
     X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y)
-    model = LogisticRegressionCV(fit_intercept=False, max_iter=10_000).fit(X_train, y_train)
+    model = make_pipeline(
+        StandardScaler(),
+        LogisticRegressionCV(fit_intercept=False, max_iter=10_000)
+    ).fit(X_train, y_train)
     return model, X, y
     
     
 def model_predict(model, df_city, grid_gdf, grid_with_counts):
     X_eval = _add_features(grid_gdf, train=False, model=model)
     predicts = grid_with_counts.copy()
-    predicts['target'] = model.predict_proba(X_eval)[:, 0]
+    predicts['target'] = model.predict_proba(X_eval)[:, 1]
     return predicts
 
 
