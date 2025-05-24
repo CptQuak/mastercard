@@ -65,8 +65,6 @@ def create_city_grid(df, city:str = 'Białystok', cell_size:int = 250):
     min_lon, min_lat = df_city['longitude'].min(), df_city['latitude'].min()
     max_lon, max_lat = df_city['longitude'].max(), df_city['latitude'].max()
     
-    print(min_lon, min_lat)
-    print(max_lon, max_lat)
     # generate boxes on map
     grid_gdf = _generate_boxes(min_lon, min_lat, max_lon, max_lat, cell_size)
     

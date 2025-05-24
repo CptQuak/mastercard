@@ -11,8 +11,8 @@ import functions.plots as plots
 import functions.models as models
 
 # --- PARAMETRY ---
-path = "local/datasets/hack/paczkomaty.json"
-model_path = "notebooks/model.joblib"
+path = "datasets/hack/paczkomaty.json"
+model_path = "model.joblib"
 
 # ------------------------
 
