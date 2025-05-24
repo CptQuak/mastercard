@@ -10,7 +10,7 @@ import numpy as np
 from geopy.geocoders import Nominatim
 
 
-def get_city_bounds(city_name, country='Poland'):
+def _get_city_bounds(city_name, country='Poland'):
     """Get city box min max lat lon"""
     geolocator = Nominatim(user_agent="city_bounds_script")
     location = geolocator.geocode(f"{city_name}, {country}", exactly_one=True)
@@ -29,7 +29,7 @@ def get_city_bounds(city_name, country='Poland'):
         raise Exception(str({'city': city_name, 'error': 'City not found or no bounding box'}))
 
 
-def generate_boxes(min_lon, min_lat, max_lon, max_lat, cell_size):
+def _generate_boxes(min_lon, min_lat, max_lon, max_lat, cell_size):
     """Generate boxes based on cooridnates"""
     aoi_bbox_gdf = geopandas.GeoDataFrame(
         {'geometry': [box(min_lon, min_lat, max_lon, max_lat)]}, crs="EPSG:4326")
@@ -48,7 +48,7 @@ def generate_boxes(min_lon, min_lat, max_lon, max_lat, cell_size):
 def create_city_grid(df, city:str = 'Białystok', cell_size:int = 250):
     """Create grid for a specified city"""
     df_city = df.filter(pl.col('line2').str.contains(city))
-    boundaries = get_city_bounds(city)
+    boundaries = _get_city_bounds(city)
     
     lower_bound_lat = boundaries['min_lat']
     upper_bound_lat = boundaries['max_lat']
@@ -68,7 +68,7 @@ def create_city_grid(df, city:str = 'Białystok', cell_size:int = 250):
     print(min_lon, min_lat)
     print(max_lon, max_lat)
     # generate boxes on map
-    grid_gdf = generate_boxes(min_lon, min_lat, max_lon, max_lat, cell_size)
+    grid_gdf = _generate_boxes(min_lon, min_lat, max_lon, max_lat, cell_size)
     
     # merge boxes with original frame, mark non matches with 0
     observations_gdf = geopandas.GeoDataFrame(
