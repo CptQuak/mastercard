@@ -40,10 +40,10 @@ city = st.selectbox(
 )
 
 # Header
-st.header("Wybór budżetu")
+st.header("Wybór ilość paczkomatów")
 
 # Budget input
-budget = st.number_input("Wybierz budżet", min_value=1, max_value=100000, step=1)
+budget = st.number_input("Wybierz ilość paczkomatów do umieszczenia", min_value=1, max_value=100000, step=1)
 
 # Loading model and train sets
 model = joblib.load(model_path)
@@ -64,8 +64,23 @@ grid_gdf, grid_with_counts = features.add_hex_features(df_city, grid_gdf, grid_w
 # Getting predictions
 predicts = models.model_predict(model, df_city, grid_gdf, grid_with_counts)
 
+# --- Budget ---
+x = grid_with_counts[['id', 'observation_count']].copy()
+x['observation_count'] = np.where(x['observation_count'] >=1, 1, 0)
+# predicts
+x = x.merge(predicts[['id', 'target']])
+
+x = x.query('observation_count == 0').sort_values('target', ascending=False).head(budget)
+grid_gdf_best = grid_gdf.merge(x, on='id', how='inner')
+
+grid_gdf_best = grid_gdf_best.to_crs("EPSG:4326")
+grid_gdf_best['longitude'] = grid_gdf_best.geometry.centroid.x
+grid_gdf_best['latitude'] = grid_gdf_best.geometry.centroid.y
+# --------------
+
 # Plotting cities
-fig_plotly = plots.plot_city(df_city, grid_gdf, predicts, 'target')
+fig_plotly = plots.plot_city(df_city, grid_gdf, predicts, 'target', grid_gdf_best)
+
 
 
 # Create two columns (panels)

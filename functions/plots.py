@@ -1,7 +1,7 @@
 import plotly.express as px
 import plotly.graph_objects as go 
 
-def plot_city(df_city, grid_gdf, grid_with_counts, value_column='observation_count'):
+def plot_city(df_city, grid_gdf, grid_with_counts, value_column='observation_count', best_grid=None):
     map_center_lat = df_city["latitude"].mean()
     map_center_lon = df_city["longitude"].mean()
 
@@ -42,6 +42,24 @@ def plot_city(df_city, grid_gdf, grid_with_counts, value_column='observation_cou
     )
 
     fig.add_trace(scatter_trace)
+
+    if best_grid is not None:
+        scatter_trace = go.Scattermapbox(
+            lat=best_grid["latitude"].to_list(),
+            lon=best_grid["longitude"].to_list(),
+            mode='markers+text',
+            marker=go.scattermapbox.Marker(
+                size=15,
+                color='red',
+                opacity=0.7
+            ),
+            text=["📦"] * len(best_grid),
+            textposition="top right",
+            textfont=dict(size=14),
+            name="Wysoki potencjał"
+        )
+
+        fig.add_trace(scatter_trace)
 
     # --- Update Layout ---
     fig.update_layout(
