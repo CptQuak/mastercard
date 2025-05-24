@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import dalex as dx 
 
 import numpy as np
 import pandas as pd
@@ -21,9 +22,11 @@ from geopy.geocoders import Nominatim
 
 def _add_features(grid_gdf, train=True):
     if train:
-        X, y = np.ones((len(grid_gdf), 1)), grid_gdf['target']
+        X, y = pd.DataFrame(), grid_gdf['target']
+        X['intercept'] = np.ones(len(grid_gdf))
     else:
-        X =  np.ones((len(grid_gdf), 1))
+        X =  pd.DataFrame()
+        X['intercept'] = np.ones(len(grid_gdf))
     if train:
         return X, y
     else:
@@ -41,8 +44,8 @@ def _create_training_frame(df_city, grid_gdf, grid_with_counts):
 def model_fit(df_city, grid_gdf, grid_with_counts):
     X, y = _create_training_frame(df_city, grid_gdf, grid_with_counts)
     X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y)
-    model = LogisticRegressionCV().fit(X_train, y_train)
-    return model
+    model = LogisticRegressionCV(fit_intercept=False).fit(X_train, y_train)
+    return model, X, y
     
     
 def model_predict(model, df_city, grid_gdf, grid_with_counts):
@@ -50,3 +53,12 @@ def model_predict(model, df_city, grid_gdf, grid_with_counts):
     predicts = grid_with_counts.copy()
     predicts['target'] = model.predict_proba(X_eval)[:, 1]
     return predicts
+
+
+
+def explain_prediction(grid_gdf, idx, model, X_train, y_train):
+    X_eval = _add_features(grid_gdf, train=False)
+    exp = dx.Explainer(model, X_train, y_train)
+    obs = pd.DataFrame(X_eval.iloc[idx, :])
+    obs_bd = exp.predict_parts(obs, type='break_down')
+    return obs_bd
