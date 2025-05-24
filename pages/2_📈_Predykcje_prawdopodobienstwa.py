@@ -18,11 +18,11 @@ model_path = "model.joblib"
 X_train_path = "X_train.joblib"
 y_train_path = "y_train.joblib"
 clicked_id = 1
-
 # ------------------------
 
 st.set_page_config(layout="wide")
 
+# Title
 st.title("Predykcje")
 
 # Header
@@ -40,18 +40,24 @@ st.header("Wybór budżetu")
 # Budget input
 budget = st.number_input("Wybierz budżet", min_value=1, max_value=100000, step=1)
 
+# Loading model and train sets
 model = joblib.load(model_path)
 X_train = joblib.load(X_train_path)
 y_train = joblib.load(y_train_path)
 
+# Loading dataset
 df = pd.read_json(path)
 df = pl.from_pandas(df)
 struct_columns = [col_name for col_name, dtype in df.schema.items() if isinstance(dtype, pl.Struct)]
 df = df.unnest(struct_columns)
 
+# Creating city grid
 df_city, grid_gdf, grid_with_counts = boxes.create_city_grid(df, city)
+
+# Getting predictions
 predicts = models.model_predict(model, df_city, grid_gdf, grid_with_counts)
 
+# Plotting cities
 fig_plotly = plots.plot_city(df_city, grid_gdf, predicts, 'target')
 
 
@@ -62,6 +68,7 @@ left_col, right_col = st.columns([0.7, 1.3])
 with right_col:
     st.header("Mapa miasta")
 
+    # Response to clicking on map
     clicked_points = plotly_events(
         fig_plotly,
         click_event=True,
@@ -93,4 +100,5 @@ with left_col:
     # Show in Streamlit
     st.pyplot(fig)
 
+    # Info text about clicked-on segment
     st.write(f"Statystyki wyświetlane dla segmentu: {clicked_id}")

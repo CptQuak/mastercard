@@ -13,7 +13,6 @@ import functions.models as models
 # --- PARAMETRY ---
 path = "datasets/hack/paczkomaty.json"
 model_path = "model.joblib"
-
 # ------------------------
 
 st.set_page_config(layout="wide")
@@ -30,14 +29,19 @@ city = st.selectbox(
     options=["Białystok", "Warszawa", "Lublin"]
 )
 
+# Reading dataset
 df = pd.read_json(path)
 df = pl.from_pandas(df)
 struct_columns = [col_name for col_name, dtype in df.schema.items() if isinstance(dtype, pl.Struct)]
 df = df.unnest(struct_columns)
 
+# Creating city grid
 df_city, grid_gdf, grid_with_counts = boxes.create_city_grid(df, city)
+
+# Loading model
 model = joblib.load(model_path)
 
+# Plotting cities
 fig_plotly = plots.plot_city(df_city, grid_gdf, grid_with_counts)
 
 # Map display
