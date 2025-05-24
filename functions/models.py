@@ -69,7 +69,5 @@ def model_predict(model, df_city, grid_gdf, grid_with_counts):
 def explain_prediction(grid_gdf, idx, model, X_train, y_train):
     X_eval = _add_features(grid_gdf, train=False, model=model)
     exp = dx.Explainer(model, X_train, y_train)
-    # obs = pd.DataFrame(X_eval.iloc[idx, :])
-    # obs_bd = exp.predict_parts(obs, type='break_down')
-    obs_bd=None
-    return obs_bd
+    obs = pd.DataFrame(X_eval.iloc[[idx], :])
+    return exp.predict_parts(obs) 
