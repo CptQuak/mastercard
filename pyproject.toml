@@ -2,6 +2,7 @@
 name='mastercard'
 version="0.0.1"
 dependencies = [
+    "dalex>=1.7.1",
     "folium>=0.19.6",
     "geopandas>=1.0.1",
     "geopy>=2.4.1",
