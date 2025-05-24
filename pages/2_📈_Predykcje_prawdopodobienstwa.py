@@ -5,12 +5,16 @@ import numpy as np
 import pandas as pd
 import polars as pl
 import joblib
+import streamlit.components.v1 as components
 
 from streamlit_plotly_events import plotly_events
 
 from functions import boxes
 from functions import plots
 from functions import models, features
+
+import warnings
+warnings.filterwarnings("ignore")
 
 # --- PARAMETRY ---
 path = "datasets/hack/paczkomaty.json"
@@ -109,18 +113,24 @@ with right_col:
 
 # Left Panel Content
 with left_col:
-    st.header("Informacje o predykcji")
-    preds = models.explain_prediction(grid_gdf, clicked_id, model, X_train, y_train)
-    preds.result.iloc[len(preds.result) -1, 0 ] = 'total'
+    # st.header("Informacje o predykcji")
+    # preds = models.explain_prediction(grid_gdf, clicked_id, model, X_train, y_train)
+    # preds.result.iloc[len(preds.result) -1, 0 ] = 'total'
     
-    # Create the figure
-    fig, ax = plt.subplots(1, 1, figsize=(10, 30))
+    # # Create the figure
+    # fig, ax = plt.subplots(1, 1, figsize=(10, 30))
 
-    # Plot your data
-    ax.plot(preds.result['cumulative'], preds.result['variable_name'], '-')
+    # # Plot your data
+    # ax.plot(preds.result['cumulative'], preds.result['variable_name'], '-')
 
-    # Show in Streamlit
+    # # Show in Streamlit
+    # st.pyplot(fig)
+
+    # # Info text about clicked-on segment
+    # st.write(f"Statystyki wyświetlane dla segmentu: {clicked_id}")
+    st.header("Informacje o predykcji")
+    fig = models.explain_prediction(grid_gdf, clicked_id, model, X_train, y_train)
     st.pyplot(fig)
-
-    # Info text about clicked-on segment
     st.write(f"Statystyki wyświetlane dla segmentu: {clicked_id}")
+    #fig_html = models.explain_prediction_force_plot(grid_gdf, clicked_id, model, X_train, y_train)
+    #components.html(fig_html, height=400)

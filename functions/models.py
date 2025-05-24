@@ -66,8 +66,34 @@ def model_predict(model, df_city, grid_gdf, grid_with_counts):
 
 
 
+# def explain_prediction(grid_gdf, idx, model, X_train, y_train):
+#     X_eval = _add_features(grid_gdf, train=False, model=model)
+#     exp = dx.Explainer(model, X_train, y_train)
+#     obs = pd.DataFrame(X_eval.iloc[[idx], :])
+#     return exp.predict_parts(obs) 
+
 def explain_prediction(grid_gdf, idx, model, X_train, y_train):
     X_eval = _add_features(grid_gdf, train=False, model=model)
-    exp = dx.Explainer(model, X_train, y_train)
-    obs = pd.DataFrame(X_eval.iloc[[idx], :])
-    return exp.predict_parts(obs) 
+    import shap
+
+    X_eval_single = X_eval.iloc[idx:]
+    explainer = shap.Explainer(model.predict, X_eval_single)
+    shap_values = explainer(X_eval_single)
+    fig = shap.plots.waterfall(shap_values[1])
+    return fig
+
+def explain_prediction_force_plot(grid_gdf, idx, model, X_train, y_train):
+    X_eval = _add_features(grid_gdf, train=False, model=model)
+    import shap
+
+    X_eval_single = X_eval.iloc[idx:]
+    explainer = shap.Explainer(model.predict, X_eval_single)
+    shap_values = explainer(X_eval_single)
+
+    force_plot_html = shap.force_plot(
+        base_value=shap_values.base_values[0], 
+        shap_values=shap_values.values[0], 
+        features=X_eval_single.iloc[0], 
+        feature_names=X_eval_single.columns
+    ).data
+    return force_plot_html
