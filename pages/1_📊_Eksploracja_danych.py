@@ -40,7 +40,7 @@ model = joblib.load(model_path)
 
 fig_plotly = plots.plot_city(df_city, grid_gdf, grid_with_counts)
 
-# Wyświetlanie mapy
+# Map display
 st.title("Mapa miasta")
 st.plotly_chart(fig_plotly, use_container_width=True)
 
