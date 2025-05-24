@@ -20,13 +20,18 @@ import numpy as np
 from geopy.geocoders import Nominatim
 
 
-def _add_features(grid_gdf, train=True):
+def _add_features(grid_gdf, train=True, model=None):
     if train:
-        X, y = pd.DataFrame(), grid_gdf['target']
-        X['intercept'] = np.ones(len(grid_gdf))
+        X, y = pd.DataFrame(grid_gdf.drop(columns=['id','geometry', 'target'])), grid_gdf['target']
     else:
-        X =  pd.DataFrame()
-        X['intercept'] = np.ones(len(grid_gdf))
+        X = pd.DataFrame(grid_gdf.drop(columns=['id','geometry']))
+        for i in X.columns:
+            if i not in model.feature_names_in_:
+                X = X.drop(columns=[i])
+        for i in model.feature_names_in_:
+            if i not in X.columns:
+                X[i] = 0
+        X = X[model.feature_names_in_]
     if train:
         return X, y
     else:
@@ -44,14 +49,14 @@ def _create_training_frame(df_city, grid_gdf, grid_with_counts):
 def model_fit(df_city, grid_gdf, grid_with_counts):
     X, y = _create_training_frame(df_city, grid_gdf, grid_with_counts)
     X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y)
-    model = LogisticRegressionCV(fit_intercept=False).fit(X_train, y_train)
+    model = LogisticRegressionCV(fit_intercept=False, max_iter=10_000).fit(X_train, y_train)
     return model, X, y
     
     
 def model_predict(model, df_city, grid_gdf, grid_with_counts):
-    X_eval = _add_features(grid_gdf, train=False)
+    X_eval = _add_features(grid_gdf, train=False, model=model)
     predicts = grid_with_counts.copy()
-    predicts['target'] = model.predict_proba(X_eval)[:, 1]
+    predicts['target'] = model.predict_proba(X_eval)[:, 0]
     return predicts
 
 
